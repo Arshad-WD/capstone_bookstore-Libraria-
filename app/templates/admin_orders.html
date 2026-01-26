@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}All Orders - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>📦 Order Management</h1>
+        <p class="admin-subtitle">View all customer orders</p>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-btn">Dashboard</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-btn">Users</a>
+        <a href="{{ url_for('admin.books') }}" class="admin-nav-btn">Books</a>
+        <a href="{{ url_for('admin.orders') }}" class="admin-nav-btn active">All Orders</a>
+    </div>
+
+    <div class="admin-section full-width">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Book</th>
+                    <th>Author</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td><span class="order-id">#{{ order.id }}</span></td>
+                        <td>{{ order.user.username }}</td>
+                        <td><strong>{{ order.book.title }}</strong></td>
+                        <td>{{ order.book.author }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td><strong>₹{{ "%.2f"|format(order.total_price) }}</strong></td>
+                        <td><span class="status-badge status-{{ order.status.lower() }}">{{ order.status }}</span></td>
+                        <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

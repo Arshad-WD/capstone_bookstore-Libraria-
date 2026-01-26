@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>👥 User Management</h1>
+        <p class="admin-subtitle">View and manage all users</p>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-btn">Dashboard</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-btn active">Users</a>
+        <a href="{{ url_for('admin.books') }}" class="admin-nav-btn">Books</a>
+        <a href="{{ url_for('admin.orders') }}" class="admin-nav-btn">All Orders</a>
+    </div>
+
+    <div class="admin-section full-width">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Orders</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.role == 'admin' %}
+                                <span class="role-badge role-admin">Admin</span>
+                            {% else %}
+                                <span class="role-badge role-customer">Customer</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.orders|length }} orders</td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

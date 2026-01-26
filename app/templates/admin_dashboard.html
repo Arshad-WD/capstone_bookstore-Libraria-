@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - BookBazaar{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>📊 Admin Dashboard</h1>
+        <p class="admin-subtitle">Track and manage your bookstore</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>Total Customers</h3>
+                <p class="stat-number">{{ stats.total_users }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-success">
+            <div class="stat-icon">📚</div>
+            <div class="stat-content">
+                <h3>Total Books</h3>
+                <p class="stat-number">{{ stats.total_books }}</p>
+                <p class="stat-detail">{{ stats.in_stock }} in stock, {{ stats.out_of_stock }} out of stock</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-info">
+            <div class="stat-icon">📦</div>
+            <div class="stat-content">
+                <h3>Total Orders</h3>
+                <p class="stat-number">{{ stats.total_orders }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <h3>Total Revenue</h3>
+                <p class="stat-number">₹{{ "%.2f"|format(stats.total_revenue) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-nav-btn active">Dashboard</a>
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-btn">Users</a>
+        <a href="{{ url_for('admin.books') }}" class="admin-nav-btn">Books</a>
+        <a href="{{ url_for('admin.orders') }}" class="admin-nav-btn">All Orders</a>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="admin-grid">
+        <!-- Recent Orders -->
+        <div class="admin-section">
+            <h2>Recent Orders</h2>
+            {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Book</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td><span class="order-id">#{{ order.id }}</span></td>
+                                    <td>{{ order.user.username }}</td>
+                                    <td>{{ order.book.title[:30] }}...</td>
+                                    <td><strong>₹{{ "%.2f"|format(order.total_price) }}</strong></td>
+                                    <td><span class="status-badge status-{{ order.status.lower() }}">{{ order.status }}</span></td>
+                                    <td>{{ order.order_date.strftime('%m/%d %H:%M') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="empty-message">No orders yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div class="admin-section">
+            <h2>⚠️ Low Stock Alert</h2>
+            {% if low_stock_books %}
+                <div class="low-stock-list">
+                    {% for book in low_stock_books %}
+                        <div class="low-stock-item {% if book.stock == 0 %}out-of-stock{% endif %}">
+                            <div class="low-stock-info">
+                                <strong>{{ book.title }}</strong>
+                                <span class="low-stock-author">by {{ book.author }}</span>
+                            </div>
+                            <div class="stock-badge {% if book.stock == 0 %}stock-zero{% elif book.stock < 5 %}stock-critical{% else %}stock-low{% endif %}">
+                                {{ book.stock }} left
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-message">All books are well-stocked!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Selling Books -->
+    <div class="admin-section full-width">
+        <h2>🏆 Top Selling Books</h2>
+        {% if top_books %}
+            <div class="top-books-grid">
+                {% for book in top_books %}
+                    <div class="top-book-card">
+                        <div class="top-book-rank">#{{ loop.index }}</div>
+                        <div class="top-book-info">
+                            <h4>{{ book.title }}</h4>
+                            <p>by {{ book.author }}</p>
+                        </div>
+                        <div class="top-book-sales">
+                            <span class="sales-count">{{ book.order_count }}</span>
+                            <span class="sales-label">orders</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-message">No sales data yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Order Status Breakdown -->
+    <div class="admin-section full-width">
+        <h2>Order Status Breakdown</h2>
+        <div class="status-breakdown">
+            {% for status_info in order_status_counts %}
+                <div class="status-item">
+                    <span class="status-badge status-{{ status_info.status.lower() }}">{{ status_info.status }}</span>
+                    <span class="status-count">{{ status_info.count }} orders</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
