@@ -2,10 +2,19 @@ from app.extensions import db
 from app.models.book import Book
 
 class BookRepository:
-    def get_all(self):
-        """Get all books from database."""
-        return Book.query.all()
+    def get_all_paginated(self, page, per_page):
+        """Get paginated books from database."""
+        return Book.query.order_by(Book.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     
+    def search_paginated(self, query, page, per_page):
+        """Search books with pagination."""
+        if not query:
+            return self.get_all_paginated(page, per_page)
+        return Book.query.filter(
+            (Book.title.ilike(f"%{query}%")) | 
+            (Book.author.ilike(f"%{query}%"))
+        ).order_by(Book.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
     def get_by_id(self, book_id):
         """Get a book by ID."""
         return Book.query.get(book_id)

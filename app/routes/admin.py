@@ -90,9 +90,25 @@ def users():
 @admin_bp.route("/books")
 @admin_required
 def books():
-    """View all books with stock management."""
-    all_books = Book.query.order_by(Book.title).all()
-    return render_template("admin_books.html", books=all_books, username=session.get('username'))
+    """View all books with stock management, search, and pagination."""
+    from app.repositories.book_repo import BookRepository
+    from flask import request
+    book_repo = BookRepository()
+    
+    query = request.args.get('q', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    if query:
+        pagination = book_repo.search_paginated(query, page, per_page)
+    else:
+        pagination = book_repo.get_all_paginated(page, per_page)
+        
+    return render_template("admin_books.html", 
+                         books=pagination.items, 
+                         pagination=pagination,
+                         query=query,
+                         username=session.get('username'))
 
 @admin_bp.route("/orders")
 @admin_required
@@ -100,3 +116,112 @@ def orders():
     """View all orders."""
     all_orders = Order.query.order_by(Order.order_date.desc()).all()
     return render_template("admin_orders.html", orders=all_orders, username=session.get('username'))
+
+@admin_bp.route("/books/add", methods=["POST"])
+@admin_required
+def add_book():
+    """Add a new book to the database."""
+    try:
+        title = request.form.get("title")
+        author = request.form.get("author")
+        description = request.form.get("description")
+        price = float(request.form.get("price", 0))
+        stock = int(request.form.get("stock", 0))
+        image_url = request.form.get("image_url", "")
+
+        if not title or not author:
+            flash("Title and Author are required.", "error")
+            return redirect(url_for("admin.books"))
+
+        new_book = Book(
+            title=title,
+            author=author,
+            description=description,
+            price=price,
+            stock=stock,
+            image_url=image_url
+        )
+        db.session.add(new_book)
+        db.session.commit()
+        
+        flash(f'Book "{title}" added successfully!', "success")
+        return redirect(url_for("admin.books"))
+    except Exception as e:
+        flash("An error occurred while adding the book.", "error")
+        return redirect(url_for("admin.books"))
+
+@admin_bp.route("/books/update_stock/<int:book_id>", methods=["POST"])
+@admin_required
+def update_stock(book_id):
+    """Refined: Update stock for an existing book (Add or Set)."""
+    try:
+        book = Book.query.get(book_id)
+        if not book:
+            flash("Book not found.", "error")
+            return redirect(url_for("admin.books"))
+
+        amount = int(request.form.get("stock", 0))
+        action = request.form.get("action", "set")  # Default to 'set' for safety
+        
+        if action == "add":
+            book.stock += amount
+            message = f'Added {amount} units to "{book.title}". Total: {book.stock}'
+        else:
+            book.stock = amount
+            message = f'Stock updated for "{book.title}" to {amount} units.'
+            
+        db.session.commit()
+        flash(message, "success")
+        return redirect(url_for("admin.books"))
+    except Exception as e:
+        flash("An error occurred while updating stock.", "error")
+        return redirect(url_for("admin.books"))
+
+@admin_bp.route("/users/promote/<int:user_id>", methods=["POST"])
+@admin_required
+def promote_user(user_id):
+    """Promote a customer to admin."""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("admin.users"))
+            
+        if user.role == 'admin':
+            flash(f"User {user.username} is already an admin.", "warning")
+            return redirect(url_for("admin.users"))
+            
+        user.role = 'admin'
+        db.session.commit()
+        flash(f"User {user.username} promoted to Admin successfully!", "success")
+        return redirect(url_for("admin.users"))
+    except Exception as e:
+        flash("An error occurred while promoting user.", "error")
+        return redirect(url_for("admin.users"))
+
+@admin_bp.route("/users/revoke/<int:user_id>", methods=["POST"])
+@admin_required
+def revoke_admin(user_id):
+    """Revoke admin role from a user."""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("admin.users"))
+            
+        # Self-protection: cannot revoke own role
+        if user.id == session.get('user_id'):
+            flash("You cannot revoke your own admin status.", "error")
+            return redirect(url_for("admin.users"))
+            
+        if user.role != 'admin':
+            flash(f"User {user.username} is not an admin.", "warning")
+            return redirect(url_for("admin.users"))
+            
+        user.role = 'customer'
+        db.session.commit()
+        flash(f"Admin status revoked for user {user.username}.", "success")
+        return redirect(url_for("admin.users"))
+    except Exception as e:
+        flash("An error occurred while revoking admin status.", "error")
+        return redirect(url_for("admin.users"))

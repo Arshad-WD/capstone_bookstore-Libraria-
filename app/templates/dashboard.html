@@ -15,24 +15,46 @@
                 <thead>
                     <tr>
                         <th>Order ID</th>
-                        <th>Book Title</th>
-                        <th>Author</th>
-                        <th>Quantity</th>
-                        <th>Total Price</th>
-                        <th>Status</th>
-                        <th>Order Date</th>
+                        <th>Book</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Order Tracking</th>
+                        <th>Date</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for order in orders %}
                         <tr>
                             <td><span class="order-id">#{{ order.id }}</span></td>
-                            <td class="book-title-cell">{{ order.book.title }}</td>
-                            <td>{{ order.book.author }}</td>
+                            <td class="book-title-cell">
+                                <span class="dashboard-book-title">{{ order.book.title }}</span>
+                                <span class="dashboard-book-author">by {{ order.book.author }}</span>
+                            </td>
                             <td>{{ order.quantity }}</td>
                             <td><strong>₹{{ "%.2f"|format(order.total_price) }}</strong></td>
-                            <td><span class="status-badge status-{{ order.status.lower() }}">{{ order.status }}</span></td>
+                            <td>
+                                <div class="order-tracking">
+                                    <span class="status-badge status-{{ order.status.lower() }}">{{ order.status }}</span>
+                                    <div class="status-timeline">
+                                        <div class="timeline-dot {% if order.status in ['Placed', 'Processing', 'Shipped', 'Delivered'] %}active{% endif %}" title="Placed"></div>
+                                        <div class="timeline-line {% if order.status in ['Processing', 'Shipped', 'Delivered'] %}active{% endif %}"></div>
+                                        <div class="timeline-dot {% if order.status in ['Processing', 'Shipped', 'Delivered'] %}active{% endif %}" title="Processing"></div>
+                                        <div class="timeline-line {% if order.status in ['Shipped', 'Delivered'] %}active{% endif %}"></div>
+                                        <div class="timeline-dot {% if order.status in ['Shipped', 'Delivered'] %}active{% endif %}" title="Shipped"></div>
+                                        <div class="timeline-line {% if order.status == 'Delivered' %}active{% endif %}"></div>
+                                        <div class="timeline-dot {% if order.status == 'Delivered' %}active{% endif %}" title="Delivered"></div>
+                                    </div>
+                                </div>
+                            </td>
                             <td>{{ order.order_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if order.status == 'Placed' %}
+                                    <form action="{{ url_for('bookstore.cancel_order', order_id=order.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                                        <button type="submit" class="btn-cancel">Cancel</button>
+                                    </form>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

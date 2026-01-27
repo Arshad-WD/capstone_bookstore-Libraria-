@@ -16,37 +16,140 @@
         <a href="{{ url_for('admin.orders') }}" class="admin-nav-btn">All Orders</a>
     </div>
 
+    <div class="admin-section">
+        <div class="section-header">
+            <h2>Add New Book</h2>
+        </div>
+        <form action="{{ url_for('admin.add_book') }}" method="POST" class="admin-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required placeholder="Book Title">
+                </div>
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" name="author" required placeholder="Author Name">
+                </div>
+                <div class="form-group">
+                    <label for="price">Price (₹)</label>
+                    <input type="number" id="price" name="price" step="0.01" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="stock">Stock</label>
+                    <input type="number" id="stock" name="stock" required placeholder="0">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="image_url">Image URL (Optional)</label>
+                <input type="url" id="image_url" name="image_url" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3" placeholder="Book description..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Book</button>
+        </form>
+    </div>
+
     <div class="admin-section full-width">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for book in books %}
+        <div class="section-header">
+            <h2>Inventory Management</h2>
+            <div class="admin-search">
+                <form action="{{ url_for('admin.books') }}" method="GET" class="search-form">
+                    <input type="text" name="q" value="{{ query or '' }}" placeholder="Search by title or author...">
+                    <button type="submit" class="btn btn-secondary">Search</button>
+                </form>
+            </div>
+        </div>
+        
+        {% if books %}
+            <table class="admin-table">
+                <thead>
                     <tr>
-                        <td>#{{ book.id }}</td>
-                        <td><strong>{{ book.title }}</strong></td>
-                        <td>{{ book.author }}</td>
-                        <td>₹{{ "%.2f"|format(book.price) }}</td>
-                        <td>
-                            <span class="stock-badge {% if book.stock == 0 %}stock-zero{% elif book.stock < 5 %}stock-critical{% elif book.stock < 10 %}stock-low{% else %}stock-good{% endif %}">
-                                {{ book.stock }}
-                            </span>
-                        </td>
-                        <td>{{ book.orders|length }}</td>
-                        <td>₹{{ "%.2f"|format(book.price * book.orders|length) }}</td>
+                        <th>ID</th>
+                        <th>Book Details</th>
+                        <th>Price</th>
+                        <th>Current Stock</th>
+                        <th>Quick Update</th>
+                        <th>Performance</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                        <tr>
+                            <td>#{{ book.id }}</td>
+                            <td>
+                                <strong>{{ book.title }}</strong><br>
+                                <small>{{ book.author }}</small>
+                            </td>
+                            <td>₹{{ "%.2f"|format(book.price) }}</td>
+                            <td>
+                                <span class="stock-badge {% if book.stock == 0 %}stock-zero{% elif book.stock < 5 %}stock-critical{% elif book.stock < 10 %}stock-low{% else %}stock-good{% endif %}">
+                                    {{ book.stock }} units
+                                </span>
+                            </td>
+                            <td>
+                                <div class="stock-actions">
+                                    <!-- Add Stock Form -->
+                                    <form action="{{ url_for('admin.update_stock', book_id=book.id) }}" method="POST" class="quick-stock-form add-stock">
+                                        <input type="hidden" name="action" value="add">
+                                        <input type="number" name="stock" value="10" min="1" class="stock-input">
+                                        <button type="submit" class="btn-icon btn-add-stock" title="Add to current stock">+ Add</button>
+                                    </form>
+                                    
+                                    <!-- Set Total Form -->
+                                    <form action="{{ url_for('admin.update_stock', book_id=book.id) }}" method="POST" class="quick-stock-form set-stock">
+                                        <input type="hidden" name="action" value="set">
+                                        <input type="number" name="stock" value="{{ book.stock }}" min="0" class="stock-input">
+                                        <button type="submit" class="btn-icon" title="Set exact total count">Set</button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td>
+                                <small>{{ book.orders|length }} orders</small><br>
+                                <strong>₹{{ "%.2f"|format(book.price * book.orders|length) }}</strong>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Admin Pagination -->
+            {% if pagination.pages > 1 %}
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('admin.books', page=pagination.prev_num, q=query) }}" class="page-link prev-link">← Previous</a>
+                {% else %}
+                    <span class="page-link disabled prev-link">← Previous</span>
+                {% endif %}
+
+                <div class="page-numbers">
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if pagination.page == page_num %}
+                                <span class="page-number active">{{ page_num }}</span>
+                            {% else %}
+                                <a href="{{ url_for('admin.books', page=page_num, q=query) }}" class="page-number">{{ page_num }}</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="page-ellipsis">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('admin.books', page=pagination.next_num, q=query) }}" class="page-link next-link">Next →</a>
+                {% else %}
+                    <span class="page-link disabled next-link">Next →</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <p>No books found matching your search.</p>
+                <a href="{{ url_for('admin.books') }}" class="btn btn-secondary">Clear Search</a>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

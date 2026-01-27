@@ -1,11 +1,11 @@
 from flask import Blueprint, redirect, render_template
 from app.repositories.order_repo import OrderRepository
 from app.models.order import Order
-from app.services.notification import LocalNotifier
+from app.services.notification import NotificationService
 
 orders_bp = Blueprint("orders", __name__)
 repo = OrderRepository()
-notifier = LocalNotifier()
+notifier = NotificationService()
 
 @orders_bp.route("/order/<book_title>")
 def place_order(book_title):

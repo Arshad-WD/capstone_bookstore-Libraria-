@@ -15,4 +15,9 @@ class OrderRepository:
     def get_user_orders(self, user_id):
         """Get all orders for a specific user."""
         return Order.query.filter_by(user_id=user_id).order_by(Order.order_date.desc()).all()
+
+    def update(self, order):
+        """Update an existing order."""
+        db.session.commit()
+        return order
         
