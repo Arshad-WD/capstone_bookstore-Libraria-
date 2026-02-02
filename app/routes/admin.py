@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, session, flash
+from flask import Blueprint, render_template, redirect, url_for, session, flash, request
 from app.extensions import db
 from app.models.user import User
 from app.models.book import Book
@@ -92,7 +92,6 @@ def users():
 def books():
     """View all books with stock management, search, and pagination."""
     from app.repositories.book_repo import BookRepository
-    from flask import request
     book_repo = BookRepository()
     
     query = request.args.get('q', '')
