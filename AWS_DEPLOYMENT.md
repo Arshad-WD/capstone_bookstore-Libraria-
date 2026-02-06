@@ -42,7 +42,7 @@ You can deploy using **Elastic Beanstalk** (Recommended for Flask) or **EC2**.
 
 ### Option: EC2 Manual Setup
 1.  Run `python3 app_aws.py setup` (Creates tables/SNS).
-2.  Run `python3 final_seeder.py` (Loads official demo data).
+2.  Run `python3 csv_seeder.py` (Loads your CSV data from the `data/` folder).
 3.  Run `python3 app_aws.py` (Starts the website).
 
 ## 5. Final Checklist
