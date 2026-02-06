@@ -306,6 +306,90 @@ def verify_aws():
     except Exception as e:
         print(f"FAILED ({e})")
 
+def seed_db():
+    """Seed DynamoDB tables from CSV files."""
+    import csv
+    import os
+    
+    # Path setup
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(base_path, 'data')
+    
+    if not os.path.exists(data_dir):
+        print(f"[ERROR] Data directory not found at {data_dir}")
+        return
+
+    print(f"Seeding data from {data_dir}...")
+    user_repo = DynamoUserRepository()
+    book_repo = DynamoBookRepository()
+    order_repo = DynamoOrderRepository()
+
+    # 1. Seed Users
+    user_map = {} # username -> id mapping for relationships
+    try:
+        with open(os.path.join(data_dir, 'users.csv'), 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for i, row in enumerate(reader, 1):
+                user_id = f"u{i}"
+                user_data = {
+                    'id': user_id,
+                    'username': row['username'],
+                    'email': row['email'],
+                    'role': row['role'],
+                    'is_validated': row['is_validated'].lower() == 'true',
+                    'password_hash': 'pbkdf2:sha256:260000$placeholder' # Default placeholder
+                }
+                user_repo.add(user_data)
+                user_map[row['username']] = user_id
+        print("✓ Users seeded.")
+    except Exception as e:
+        print(f"Error seeding users: {e}")
+
+    # 2. Seed Books
+    book_map = {} # title -> id
+    try:
+        with open(os.path.join(data_dir, 'books.csv'), 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for i, row in enumerate(reader, 1):
+                book_id = f"b{i}"
+                seller_id = user_map.get(row['seller_username'], 'u1')
+                book_data = {
+                    'id': book_id,
+                    'title': row['title'],
+                    'author': row['author'],
+                    'description': row['description'],
+                    'price': float(row['price']),
+                    'stock': int(row['stock']),
+                    'image_url': row['image_url'],
+                    'seller_id': seller_id
+                }
+                book_repo.add(book_data)
+                book_map[row['title']] = book_id
+        print("✓ Books seeded.")
+    except Exception as e:
+        print(f"Error seeding books: {e}")
+
+    # 3. Seed Orders
+    try:
+        with open(os.path.join(data_dir, 'orders.csv'), 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for i, row in enumerate(reader, 1):
+                order_data = {
+                    'id': f"o{i}",
+                    'user_id': user_map.get(row['buyer_username'], 'u1'),
+                    'book_id': book_map.get(row['book_title'], 'b1'),
+                    'quantity': int(row['quantity']),
+                    'total_price': float(row['total_price']),
+                    'status': row['status'],
+                    'order_date': row['order_date']
+                }
+                order_repo.add(order_data)
+        print("✓ Orders seeded.")
+    except Exception as e:
+        print(f"Error seeding orders: {e}")
+    
+    print("\n✓ DynamoDB Seeding complete!")
+
 def run_server():
     """Start the Flask web server."""
     print("Starting BookBazaar Web Server on AWS...")
@@ -322,9 +406,9 @@ def run_server():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="BookBazaar AWS Utility")
-    parser.add_argument("command", choices=["setup", "verify", "run"], 
+    parser.add_argument("command", choices=["setup", "verify", "run", "seed"], 
                         nargs='?', default="run",
-                        help="Command to run (setup, verify, run). Default is 'run'.")
+                        help="Command to run (setup, verify, run, seed). Default is 'run'.")
     
     args = parser.parse_args()
     
@@ -334,3 +418,5 @@ if __name__ == "__main__":
         verify_aws()
     elif args.command == "run":
         run_server()
+    elif args.command == "seed":
+        seed_db()
