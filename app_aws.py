@@ -306,9 +306,25 @@ def verify_aws():
     except Exception as e:
         print(f"FAILED ({e})")
 
+def run_server():
+    """Start the Flask web server."""
+    print("Starting BookBazaar Web Server on AWS...")
+    print("Accessible at: http://YOUR-EC2-PUBLIC-IP:5000")
+    try:
+        from app import create_app
+        app = create_app()
+        # Ensure it listens on 0.0.0.0 for EC2 access
+        app.run(host='0.0.0.0', port=5000, debug=False)
+    except ImportError:
+        print("[ERROR] Could not find the 'app' module. Make sure you are in the project root directory.")
+    except Exception as e:
+        print(f"[ERROR] Failed to start server: {e}")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="BookBazaar AWS Utility")
-    parser.add_argument("command", choices=["setup", "verify"], help="Command to run")
+    parser.add_argument("command", choices=["setup", "verify", "run"], 
+                        nargs='?', default="run",
+                        help="Command to run (setup, verify, run). Default is 'run'.")
     
     args = parser.parse_args()
     
@@ -316,3 +332,5 @@ if __name__ == "__main__":
         setup_aws()
     elif args.command == "verify":
         verify_aws()
+    elif args.command == "run":
+        run_server()
