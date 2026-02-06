@@ -4,16 +4,21 @@ import sys
 import argparse
 from botocore.exceptions import ClientError
 from decimal import Decimal
-from dotenv import load_dotenv
+# Hardcoded Configuration (Edit these directly)
+AWS_REGION = "us-east-1"
+SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:123456789012:BookBazaarNotifications"
+S3_BUCKET_NAME = "bookbazaar-assets"
 
-# Load environment variables for CLI usage
-load_dotenv()
+# DynamoDB Table Names
+DYNAMODB_BOOKS_TABLE = "BookBazaarBooks"
+DYNAMODB_USERS_TABLE = "BookBazaarUsers"
+DYNAMODB_ORDERS_TABLE = "BookBazaarOrders"
 
 class AWSApp:
     """Central point for AWS resource management."""
     
     def __init__(self):
-        self.region = os.environ.get('AWS_REGION', 'us-east-1')
+        self.region = AWS_REGION
         self._dynamodb = None
         self._sns = None
         self._s3 = None
@@ -49,7 +54,7 @@ class SNSNotifier:
     
     def __init__(self, aws_instance=None):
         self.aws = aws_instance or aws_app
-        self.topic_arn = os.environ.get('SNS_TOPIC_ARN')
+        self.topic_arn = SNS_TOPIC_ARN
         
     def send(self, email, message):
         """Publish message to SNS Topic."""
@@ -78,7 +83,7 @@ class DynamoBookRepository:
     
     def __init__(self, aws_instance=None):
         self.aws = aws_instance or aws_app
-        self.table_name = os.environ.get('DYNAMODB_BOOKS_TABLE', 'BookBazaarBooks')
+        self.table_name = DYNAMODB_BOOKS_TABLE
         self.table = self.aws.dynamodb.Table(self.table_name)
         
     def get_all(self):
@@ -117,7 +122,7 @@ class DynamoUserRepository:
     
     def __init__(self, aws_instance=None):
         self.aws = aws_instance or aws_app
-        self.table_name = os.environ.get('DYNAMODB_USERS_TABLE', 'BookBazaarUsers')
+        self.table_name = DYNAMODB_USERS_TABLE
         self.table = self.aws.dynamodb.Table(self.table_name)
         
     def get_by_email(self, email):
@@ -148,7 +153,7 @@ class DynamoOrderRepository:
     
     def __init__(self, aws_instance=None):
         self.aws = aws_instance or aws_app
-        self.table_name = os.environ.get('DYNAMODB_ORDERS_TABLE', 'BookBazaarOrders')
+        self.table_name = DYNAMODB_ORDERS_TABLE
         self.table = self.aws.dynamodb.Table(self.table_name)
         
     def add(self, order_data):
@@ -180,7 +185,7 @@ class S3Uploader:
     def __init__(self, aws_instance=None):
         self.aws = aws_instance or aws_app
         self._s3_client = None
-        self.bucket_name = os.environ.get('S3_BUCKET_NAME', 'bookbazaar-assets')
+        self.bucket_name = S3_BUCKET_NAME
         
     @property
     def client(self):
@@ -289,12 +294,11 @@ def verify_aws():
     except Exception as e:
         print(f"FAILED ({e})")
 
-    # 2. Test SNS
     try:
         print("SNS: ", end="", flush=True)
-        topic_arn = os.environ.get('SNS_TOPIC_ARN')
-        if not topic_arn:
-            print("SKIPPED (No SNS_TOPIC_ARN in .env)")
+        topic_arn = SNS_TOPIC_ARN
+        if not topic_arn or "123456789012" in topic_arn:
+            print("SKIPPED (Update SNS_TOPIC_ARN at the top of app_aws.py)")
         else:
             notifier = SNSNotifier()
             notifier.send("test@example.com", "Connectivity verification")
