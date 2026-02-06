@@ -360,15 +360,27 @@ def run_server():
     """Start the Flask web server."""
     print("Starting BookBazaar Web Server on AWS...")
     print("Accessible at: http://YOUR-EC2-PUBLIC-IP:5000")
+    
+    # Ensure current directory is in path
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
     try:
         from app import create_app
         app = create_app()
         # Ensure it listens on 0.0.0.0 for EC2 access
         app.run(host='0.0.0.0', port=5000, debug=False)
-    except ImportError:
-        print("[ERROR] Could not find the 'app' module. Make sure you are in the project root directory.")
+    except ImportError as e:
+        print(f"\n[ERROR] Module import failed: {e}")
+        print("This usually means a dependency (like Flask) is not installed.")
+        print("Try running: pip3 install -r requirements.txt")
+        import traceback
+        traceback.print_exc()
     except Exception as e:
-        print(f"[ERROR] Failed to start server: {e}")
+        print(f"\n[ERROR] Failed to start server: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="BookBazaar AWS Utility")
