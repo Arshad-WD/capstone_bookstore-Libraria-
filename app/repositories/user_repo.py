@@ -22,4 +22,22 @@ class UserRepository:
             print(f"DynamoDB Sync Error: {e}")
         
     def get_by_email(self, email):
+        """Fetch user by email from DynamoDB first, then fallback to SQL."""
+        try:
+            dynamo = DynamoUserRepository()
+            item = dynamo.get_by_email(email)
+            if item:
+                # Map DynamoDB item back to User object for the app
+                user = User(
+                    username=item.get('username'),
+                    email=item.get('email'),
+                    role=item.get('role'),
+                    is_validated=item.get('is_validated', False)
+                )
+                user.id = item.get('id')
+                user.password_hash = item.get('password_hash')
+                return user
+        except Exception as e:
+            print(f"DynamoDB Read Error: {e}")
+            
         return User.query.filter_by(email=email).first()

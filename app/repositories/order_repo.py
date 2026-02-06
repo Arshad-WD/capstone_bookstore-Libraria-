@@ -31,8 +31,37 @@ class OrderRepository:
         return Order.query.get(order_id)
     
     def get_user_orders(self, user_id):
-        """Get all orders for a specific user."""
-        return Order.query.filter_by(user_id=user_id).order_by(Order.order_date.desc()).all()
+        """Get orders from DynamoDB."""
+        try:
+            # Note: For efficiency, this would use a GSI. 
+            # Current implementation uses scan (from app_aws.py)
+            dynamo = DynamoOrderRepository()
+            # Since app_aws.py scan doesn't have a get_by_user_id, we'll scan all for demo
+            # In production, you'd call a query on a UserOrdersIndex
+            items = dynamo.table.scan(
+                FilterExpression=boto3.dynamodb.conditions.Attr('user_id').eq(str(user_id))
+            ).get('Items', [])
+            
+            orders = []
+            for item in items:
+                order = Order(
+                    user_id=item.get('user_id'),
+                    book_id=item.get('book_id'),
+                    quantity=int(item.get('quantity', 1)),
+                    total_price=float(item.get('total_price', 0)),
+                    status=item.get('status', 'Placed')
+                )
+                order.id = item.get('id')
+                # Date parsing
+                try:
+                    order.order_date = datetime.fromisoformat(item.get('order_date'))
+                except:
+                    order.order_date = datetime.utcnow()
+                orders.append(order)
+            return orders
+        except Exception as e:
+            print(f"DynamoDB Order Read Error: {e}")
+            return Order.query.filter_by(user_id=user_id).order_by(Order.order_date.desc()).all()
 
     def update(self, order):
         """Update an existing order."""
