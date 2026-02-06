@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 from decimal import Decimal
 # Hardcoded Configuration (Edit these directly)
 AWS_REGION = "us-east-1"
-SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:123456789012:BookBazaarNotifications"
+SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
 S3_BUCKET_NAME = "bookbazaar-assets"
 
 # DynamoDB Table Names
