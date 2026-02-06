@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Blueprint | BookBazaar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #8b5cf6;
+            --bg: #0f172a;
+            --glass: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 5rem;
+            position: relative;
+        }
+
+        header::after {
+            content: 'BLUEPRINT';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8rem;
+            font-weight: 900;
+            opacity: 0.03;
+            letter-spacing: 20px;
+            z-index: -1;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            font-weight: 300;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            grid-column: span 12;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h2 span {
+            font-size: 2rem;
+        }
+
+        .mermaid-container {
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            padding: 3rem;
+            display: flex;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow-x: auto;
+        }
+
+        .tech-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .tech-pill {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: center;
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+
+        .tech-pill:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 5rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+        }
+
+        /* Mermaid Dark Theme Overrides */
+        .mermaid svg {
+            filter: invert(0.9) hue-rotate(180deg);
+        }
+    </style>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'Outfit',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Technical Blueprint</h1>
+            <p class="subtitle">An Improved Visual Guide to BookBazaar's Entities & Architecture</p>
+        </header>
+
+        <div class="grid">
+            <!-- Simplified & High-Clarity Chen ER Diagram Card -->
+            <div class="card">
+                <h2><span>📊</span> Conceptual Entity Relationship (Simple Design)</h2>
+                <div class="mermaid-container" style="background: #f8fafc; border: 4px solid #e2e8f0; padding: 3rem; border-radius: 20px;">
+                    <div class="mermaid">
+                        graph TD
+                            %% Entities
+                            Users[Users]
+                            Orders[Orders]
+                            Books[Books]
+                            Categories[Categories]
+
+                            %% Attributes (Users)
+                            u1(["user_id"])
+                            u2(["username"])
+                            u3(["email"])
+                            u4(["password"])
+                            u5(["address"])
+
+                            %% Attributes (Orders)
+                            o1(["order_id"])
+                            o2(["user_id"])
+                            o3(["order_date"])
+                            o4(["quantity"])
+                            o5(["status"])
+                            o6(["total_price"])
+
+                            %% Attributes (Books)
+                            b1(["book_id"])
+                            b2(["title"])
+                            b3(["author"])
+                            b4(["genre"])
+                            b5(["stock_quantity"])
+                            b6(["price"])
+                            b7(["publisher"])
+                            b8(["publication_date"])
+
+                            %% Attributes (Categories)
+                            c1(["category_id"])
+                            c2(["category_name"])
+
+                            %% Relationships (Diamonds)
+                            Places{Places}
+                            Contains{Contains}
+                            Belongs{Belongs to}
+
+                            %% Connections - Users
+                            Users --- u1
+                            Users --- u2
+                            Users --- u3
+                            Users --- u4
+                            Users --- u5
+                            
+                            %% Connections - Orders
+                            Orders --- o1
+                            Orders --- o2
+                            Orders --- o3
+                            Orders --- o4
+                            Orders --- o5
+                            Orders --- o6
+
+                            %% Connections - Books
+                            Books --- b1
+                            Books --- b2
+                            Books --- b3
+                            Books --- b4
+                            Books --- b5
+                            Books --- b6
+                            Books --- b7
+                            Books --- b8
+
+                            %% Connections - Categories
+                            Categories --- c1
+                            Categories --- c2
+
+                            %% Logic Links (Cardinality)
+                            Users -- "1" --- Places
+                            Places -- "Many" --- Orders
+                            
+                            Orders -- "Many" --- Contains
+                            Contains -- "Many" --- Books
+                            
+                            Categories -- "Many" --- Belongs
+                            Belongs -- "Many" --- Books
+
+                            %% Styling to match reference image
+                            style Users fill:#add8e6,stroke:#000,stroke-width:2px,color:#000
+                            style Orders fill:#add8e6,stroke:#000,stroke-width:2px,color:#000
+                            style Books fill:#add8e6,stroke:#000,stroke-width:2px,color:#000
+                            style Categories fill:#90EE90,stroke:#000,stroke-width:2px,color:#000
+                            
+                            style Places fill:#FFFF00,stroke:#000,stroke-width:2px,color:#000
+                            style Contains fill:#FFFF00,stroke:#000,stroke-width:2px,color:#000
+                            style Belongs fill:#FFFF00,stroke:#000,stroke-width:2px,color:#000
+
+                            %% Attributes are white ovals
+                            style u1 fill:#fff,stroke:#000,color:#000
+                            style u2 fill:#fff,stroke:#000,color:#000
+                            style u3 fill:#fff,stroke:#000,color:#000
+                            style u4 fill:#fff,stroke:#000,color:#000
+                            style u5 fill:#fff,stroke:#000,color:#000
+                            style o1 fill:#fff,stroke:#000,color:#000
+                            style o2 fill:#fff,stroke:#000,color:#000
+                            style o3 fill:#fff,stroke:#000,color:#000
+                            style o4 fill:#fff,stroke:#000,color:#000
+                            style o5 fill:#fff,stroke:#000,color:#000
+                            style o6 fill:#fff,stroke:#000,color:#000
+                            style b1 fill:#fff,stroke:#000,color:#000
+                            style b2 fill:#fff,stroke:#000,color:#000
+                            style b3 fill:#fff,stroke:#000,color:#000
+                            style b4 fill:#fff,stroke:#000,color:#000
+                            style b5 fill:#fff,stroke:#000,color:#000
+                            style b6 fill:#fff,stroke:#000,color:#000
+                            style b7 fill:#fff,stroke:#000,color:#000
+                            style b8 fill:#fff,stroke:#000,color:#000
+                            style c1 fill:#fff,stroke:#000,color:#000
+                            style c2 fill:#fff,stroke:#000,color:#000
+
+                            linkStyle default stroke:#000,stroke-width:1.5px
+                    </div>
+                </div>
+                <p style="margin-top: 1.5rem; color: #94a3b8; font-size: 0.9rem; text-align: center;">
+                    <b>Plain Design:</b> A high-clarity conceptual view following standard Chen notation.
+                </p>
+            </div>
+
+            <!-- Enhanced Multi-Tier Architecture -->
+            <div class="card">
+                <h2><span>🏗️</span> Production Cloud Architecture</h2>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+                        graph TD
+                            subgraph External [External Layer]
+                                Browser[Web Browser]
+                                CDN[Static Asset Delivery]
+                            end
+
+                            subgraph AppLayer [Application Layer]
+                                Flask[Flask Engine]
+                                Blueprints[Route Controllers]
+                                Repos[Repository Pattern]
+                                Biz[Business Logic]
+                            end
+
+                            subgraph DataLayer [Data Persistence]
+                                SQL[(Main Database: SQL)]
+                                Dynamo[(Cloud Sync: DynamoDB)]
+                                S3[(Object Storage: S3)]
+                            end
+
+                            subgraph CloudServices [Cloud Utilities]
+                                SNS[Messenger: AWS SNS]
+                                Auth[Auth Provider]
+                            end
+
+                            Browser <--> Flask
+                            Flask --> Blueprints
+                            Blueprints --> Biz
+                            Biz --> Repos
+                            Repos <--> SQL
+                            Repos -- "NoSQL Sync" --> Dynamo
+                            Flask --> S3
+                            Flask --> SNS
+                            Flask --> Auth
+                    </div>
+                </div>
+            </div>
+
+            <!-- Improved Local Architecture -->
+            <div class="card">
+                <h2><span>💻</span> Local Machine Architecture</h2>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+                        graph LR
+                            Dev[Developer] --> IDE[VS Code / Tooling]
+                            IDE --> FlaskSrv[Flask Dev Server]
+                            
+                            subgraph Env [Local Stack]
+                                Python[Python 3.x]
+                                SQLite[(SQLite File)]
+                                Assets[Local Media FS]
+                                Settings[.env Config]
+                            end
+                            
+                            FlaskSrv --> Python
+                            FlaskSrv --> SQLite
+                            FlaskSrv --> Assets
+                            FlaskSrv --> Settings
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full Tech Stack -->
+            <div class="card">
+                <h2><span>🛠️</span> Technical Arsenal</h2>
+                <div class="tech-list">
+                    <div class="tech-pill">Python Flask</div>
+                    <div class="tech-pill">SQLAlchemy</div>
+                    <div class="tech-pill">AWS DynamoDB</div>
+                    <div class="tech-pill">Amazon S3</div>
+                    <div class="tech-pill">Amazon SNS</div>
+                    <div class="tech-pill">Jinja2 Engine</div>
+                    <div class="tech-pill">Boto3 SDK</div>
+                    <div class="tech-pill">Mermaid.js</div>
+                    <div class="tech-pill">Glassmorphism</div>
+                    <div class="tech-pill">Repo Pattern</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Architectural Specification &bull; 2026 &bull; Final Delivery Version
+        </footer>
+    </div>
+</body>
+</html>

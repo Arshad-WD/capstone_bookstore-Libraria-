@@ -33,6 +33,9 @@
                     <div class="book-details">
                         <h3 class="book-title">{{ book.title }}</h3>
                         <p class="book-author">by {{ book.author }}</p>
+                        {% if book.seller %}
+                            <p class="book-seller"><small>Sold by: {{ book.seller.username }}</small></p>
+                        {% endif %}
                         {% if book.description %}
                             <p class="book-description">{{ book.description[:120] }}{% if book.description|length > 120 %}...{% endif %}</p>
                         {% endif %}

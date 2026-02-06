@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Seller Hub - BookBazaar{% endblock %}
+
+{% block content %}
+<div class="seller-dashboard-container">
+    <!-- Premium Glass Header -->
+    <header class="seller-header-glass">
+        <div class="seller-brand">
+            <h1>Seller Hub</h1>
+            <p>Welcome back, <strong>{{ username }}</strong>. Here's your business at a glance.</p>
+        </div>
+        <div class="seller-status-box">
+            {% if session.get('user_id') and user and user.is_validated %}
+                <div class="seller-status-pill status-valid">
+                    <span class="s-icon">🛡️</span> Verified Professional
+                </div>
+            {% else %}
+                <div class="seller-status-pill status-pending">
+                    <span class="s-icon">⏳</span> Verification Pending
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 5px; text-align: right;">Restrictions may apply until verified.</p>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="p-nav">
+        <a href="{{ url_for('seller.dashboard') }}" class="p-nav-btn active">Inventory</a>
+        <a href="{{ url_for('seller.sales') }}" class="p-nav-btn">Sales & Analytics</a>
+    </nav>
+
+    <!-- Stats Row -->
+    <div class="seller-stats-row">
+        <div class="premium-stat-card">
+            <div class="stat-icon-bg">📚</div>
+            <div class="stat-info">
+                <span class="stat-val">{{ books|length }}</span>
+                <span class="stat-lbl">Active Listings</span>
+            </div>
+        </div>
+        <div class="premium-stat-card">
+            <div class="stat-icon-bg">📦</div>
+            <div class="stat-info">
+                <span class="stat-val">{{ total_stock }}</span>
+                <span class="stat-lbl">Inventory Units</span>
+            </div>
+        </div>
+        <div class="premium-stat-card stat-revenue">
+            <div class="stat-icon-bg">📈</div>
+            <div class="stat-info">
+                <span class="stat-val">Live</span>
+                <span class="stat-lbl">Store Status</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Book Section -->
+    <section class="premium-container">
+        <h2 class="premium-title">✨ Expand Your Catalog</h2>
+        <form action="{{ url_for('seller.add_book') }}" method="POST" class="premium-add-form">
+            <div class="premium-form-grid">
+                <div class="p-input-group">
+                    <label class="p-label">Book Title</label>
+                    <input type="text" name="title" class="p-input" placeholder="e.g. The Great Gatsby" required>
+                </div>
+                <div class="p-input-group">
+                    <label class="p-label">Author Name</label>
+                    <input type="text" name="author" class="p-input" placeholder="Author Full Name" required>
+                </div>
+                <div class="p-input-group">
+                    <label class="p-label">Price (INR)</label>
+                    <input type="number" name="price" step="0.01" class="p-input" placeholder="0.00" required>
+                </div>
+                <div class="p-input-group">
+                    <label class="p-label">Opening Stock</label>
+                    <input type="number" name="stock" class="p-input" placeholder="Units available" required>
+                </div>
+            </div>
+            <div class="p-input-group">
+                <label class="p-label">Compelling Description</label>
+                <textarea name="description" class="p-input" rows="3" placeholder="Tell readers why they'll love this book..."></textarea>
+            </div>
+            <div class="p-input-group">
+                <label class="p-label">Image Reference (Optional)</label>
+                <input type="text" name="image_url" class="p-input" placeholder="URL or filepath to cover image">
+            </div>
+            <div style="text-align: right; margin-top: 1rem;">
+                <button type="submit" class="btn-premium-action">
+                    Launch Listing 🚀
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Inventory Listing -->
+    <section class="premium-container">
+        <h2 class="premium-title">📊 Inventory Management</h2>
+        <div style="overflow-x: auto;">
+            <table class="p-table">
+                <thead>
+                    <tr>
+                        <th>Book Details</th>
+                        <th>Pricing</th>
+                        <th>Stock Level</th>
+                        <th style="text-align: right;">Management</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr class="p-row">
+                        <td>
+                            <div class="p-book-meta">
+                                {% if book.image_url %}
+                                    <img src="{{ book.image_url }}" class="p-book-thumb" alt="{{ book.title }}">
+                                {% else %}
+                                    <div class="p-book-thumb" style="background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #94a3b8;">NO COVER</div>
+                                {% endif %}
+                                <div>
+                                    <span class="bt-title">{{ book.title }}</span>
+                                    <span class="bt-author">by {{ book.author }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="p-price">₹{{ "%.2f"|format(book.price) }}</span>
+                        </td>
+                        <td>
+                            <span class="p-stock-pill {% if book.stock == 0 %}ps-out{% elif book.stock < 10 %}ps-low{% else %}ps-in{% endif %}">
+                                {% if book.stock == 0 %}OUT OF STOCK{% elif book.stock < 10 %}LOW: {{ book.stock }}{% else %}{{ book.stock }} AVAILABLE{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <form action="{{ url_for('seller.delete_book', book_id=book.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn-remove" style="color: #ef4444; font-weight: 700; background: none; border: none; cursor: pointer; font-size: 0.85rem;" onclick="return confirm('Archive this listing? This action cannot be undone.')">
+                                    Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <div class="empty-icon">📂</div>
+                                <h3>No Books Listed</h3>
+                                <p>Start your journey by adding your first masterpiece above.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

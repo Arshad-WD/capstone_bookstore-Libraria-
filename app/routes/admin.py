@@ -31,7 +31,8 @@ def dashboard():
     """Admin dashboard with statistics and tracking."""
     
     # Get statistics
-    total_users = User.query.filter_by(role='customer').count()
+    total_users = User.query.filter_by(role='buyer').count()
+    total_sellers = User.query.filter_by(role='seller').count()
     total_books = Book.query.count()
     total_orders = Order.query.count()
     
@@ -63,6 +64,7 @@ def dashboard():
     
     stats = {
         'total_users': total_users,
+        'total_sellers': total_sellers,
         'total_books': total_books,
         'total_orders': total_orders,
         'total_revenue': total_revenue,
@@ -83,9 +85,18 @@ def dashboard():
 @admin_bp.route("/users")
 @admin_required
 def users():
-    """View all users."""
-    all_users = User.query.all()
-    return render_template("admin_users.html", users=all_users, username=session.get('username'))
+    """View all users or filter by role."""
+    role_filter = request.args.get('role')
+    if role_filter in ['seller', 'buyer', 'admin']:
+        display_users = User.query.filter_by(role=role_filter).all()
+    else:
+        display_users = User.query.all()
+        role_filter = 'all'
+        
+    return render_template("admin_users.html", 
+                         users=display_users, 
+                         current_role=role_filter,
+                         username=session.get('username'))
 
 @admin_bp.route("/books")
 @admin_required
@@ -198,6 +209,28 @@ def promote_user(user_id):
         flash("An error occurred while promoting user.", "error")
         return redirect(url_for("admin.users"))
 
+@admin_bp.route("/users/promote_seller/<int:user_id>", methods=["POST"])
+@admin_required
+def promote_seller(user_id):
+    """Promote a customer to seller."""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("admin.users"))
+            
+        if user.role != 'buyer':
+            flash(f"Only buyers can be promoted to seller.", "warning")
+            return redirect(url_for("admin.users"))
+            
+        user.role = 'seller'
+        db.session.commit()
+        flash(f"User {user.username} promoted to Seller successfully!", "success")
+        return redirect(url_for("admin.users"))
+    except Exception as e:
+        flash("An error occurred while promoting user.", "error")
+        return redirect(url_for("admin.users"))
+
 @admin_bp.route("/users/revoke/<int:user_id>", methods=["POST"])
 @admin_required
 def revoke_admin(user_id):
@@ -213,14 +246,71 @@ def revoke_admin(user_id):
             flash("You cannot revoke your own admin status.", "error")
             return redirect(url_for("admin.users"))
             
-        if user.role != 'admin':
-            flash(f"User {user.username} is not an admin.", "warning")
+        if user.role not in ['admin', 'seller']:
+            flash(f"User {user.username} is already a buyer.", "warning")
             return redirect(url_for("admin.users"))
             
-        user.role = 'customer'
+        user.role = 'buyer'
         db.session.commit()
         flash(f"Admin status revoked for user {user.username}.", "success")
         return redirect(url_for("admin.users"))
     except Exception as e:
         flash("An error occurred while revoking admin status.", "error")
+        return redirect(url_for("admin.users"))
+
+@admin_bp.route("/users/validate/<int:user_id>", methods=["POST"])
+@admin_required
+def validate_user(user_id):
+    """Approve/Validate a seller's credentials."""
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            flash("User not found.", "error")
+            return redirect(url_for("admin.users"))
+            
+        user.is_validated = not user.is_validated
+        db.session.commit()
+        
+        status = "validated" if user.is_validated else "unvalidated"
+        flash(f"User {user.username} is now {status}.", "success")
+        return redirect(url_for("admin.users"))
+    except Exception as e:
+        flash("An error occurred while validating user.", "error")
+        return redirect(url_for("admin.users"))
+
+@admin_bp.route("/users/bulk_promote_sellers", methods=["POST"])
+@admin_required
+def bulk_promote_sellers():
+    """Promote all buyers to validated sellers."""
+    try:
+        # Update all buyers to sellers and validate them
+        affected = User.query.filter_by(role='buyer').update({
+            "role": 'seller',
+            "is_validated": True
+        })
+        db.session.commit()
+        flash(f"Success! {affected} users promoted to Validated Sellers.", "success")
+        return redirect(url_for("admin.users"))
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while bulk promoting users.", "error")
+        return redirect(url_for("admin.users"))
+
+@admin_bp.route("/users/bulk_reset_buyers", methods=["POST"])
+@admin_required
+def bulk_reset_buyers():
+    """Reset all non-admins to buyers."""
+    try:
+        current_admin_id = session.get('user_id')
+        # Update all users except the current admin to buyers
+        affected = User.query.filter(User.id != current_admin_id).update({
+            "role": 'buyer',
+            "is_validated": False
+        })
+        db.session.commit()
+        flash(f"Success! {affected} users reset to Buyers.", "success")
+        return redirect(url_for("admin.users"))
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while bulk resetting users.", "error")
         return redirect(url_for("admin.users"))

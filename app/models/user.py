@@ -7,7 +7,8 @@ class User(db.Model):
     username = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), default="customer")
+    role = db.Column(db.String(20), default="buyer")  # Roles: buyer, seller, admin
+    is_validated = db.Column(db.Boolean, default=False)  # For seller verification
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):

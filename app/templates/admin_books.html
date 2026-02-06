@@ -80,7 +80,10 @@
                             <td>#{{ book.id }}</td>
                             <td>
                                 <strong>{{ book.title }}</strong><br>
-                                <small>{{ book.author }}</small>
+                                <small>{{ book.author }}</small><br>
+                                {% if book.seller %}
+                                    <small class="text-muted">Sold by: {{ book.seller.username }}</small>
+                                {% endif %}
                             </td>
                             <td>₹{{ "%.2f"|format(book.price) }}</td>
                             <td>

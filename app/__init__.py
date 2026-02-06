@@ -22,10 +22,12 @@ def create_app():
     from .routes.auth import auth_bp
     from .routes.bookstore import bookstore_bp
     from .routes.admin import admin_bp
+    from .routes.seller import seller_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(bookstore_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(seller_bp)
     
     # Create tables if they don't exist
     with app.app_context():

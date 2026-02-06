@@ -35,6 +35,9 @@
                     {% if session.get('user_role') == 'admin' %}
                         <a href="{{ url_for('admin.dashboard') }}" class="nav-link admin-link">Admin Dashboard</a>
                     {% endif %}
+                    {% if session.get('user_role') == 'seller' %}
+                        <a href="{{ url_for('seller.dashboard') }}" class="nav-link seller-link">Seller Dashboard</a>
+                    {% endif %}
                     <span class="nav-user">Hello, {{ session.get('username') }}</span>
                     <a href="{{ url_for('auth.logout') }}" class="nav-link btn-logout">Logout</a>
                 {% else %}

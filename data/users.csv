@@ -1,0 +1,5 @@
+username,email,password,role,is_validated
+john_seller,john@seller.com,seller123,seller,True
+jane_seller,jane@seller.com,seller123,seller,True
+alice_buyer,alice@buyer.com,buyer123,buyer,False
+bob_buyer,bob@buyer.com,buyer123,buyer,False

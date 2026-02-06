@@ -1,5 +1,6 @@
 from app.extensions import db
 from app.models.book import Book
+from app_aws import DynamoBookRepository
 
 class BookRepository:
     def get_all_paginated(self, page, per_page):
@@ -20,9 +21,25 @@ class BookRepository:
         return Book.query.get(book_id)
     
     def add(self, book):
-        """Add a new book to database."""
+        """Add a new book to database and DynamoDB."""
         db.session.add(book)
         db.session.commit()
+        
+        # Sync to DynamoDB
+        try:
+            dynamo = DynamoBookRepository()
+            dynamo.add({
+                'id': str(book.id),
+                'title': book.title,
+                'author': book.author,
+                'price': book.price,
+                'stock': book.stock,
+                'seller_id': str(book.seller_id) if book.seller_id else "system",
+                'image_url': book.image_url or ""
+            })
+        except Exception as e:
+            print(f"DynamoDB Sync Error: {e}")
+            
         return book
     
     def update(self, book):

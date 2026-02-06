@@ -472,28 +472,41 @@ def init_database():
         db.session.commit()
         print(f"✓ Added {len(books)} books to database")
         
-        # Create demo customer user
-        print("Creating demo customer user...")
+        # Create demo buyer user
+        print("Creating demo buyer user...")
         demo_user = User(
             username="demo",
             email="demo@bookbazaar.com",
-            role="customer"
+            role="buyer"
         )
         demo_user.set_password("demo123")
         db.session.add(demo_user)
+        
+        # Create demo seller user
+        print("Creating demo seller user...")
+        seller_user = User(
+            username="seller",
+            email="seller@bookbazaar.com",
+            role="seller",
+            is_validated=True
+        )
+        seller_user.set_password("seller123")
+        db.session.add(seller_user)
         
         # Create admin user
         print("Creating admin user...")
         admin_user = User(
             username="admin",
             email="admin@bookbazaar.com",
-            role="admin"
+            role="admin",
+            is_validated=True
         )
         admin_user.set_password("admin123")
         db.session.add(admin_user)
         
         db.session.commit()
-        print("✓ Created demo customer (email: demo@bookbazaar.com, password: demo123)")
+        print("✓ Created demo buyer (email: demo@bookbazaar.com, password: demo123)")
+        print("✓ Created demo seller (email: seller@bookbazaar.com, password: seller123)")
         print("✓ Created admin user (email: admin@bookbazaar.com, password: admin123)")
         
         print("\n" + "="*50)
@@ -501,7 +514,8 @@ def init_database():
         print("="*50)
         print(f"\n📚 Total Books: {len(books)}")
         print("\nAccounts created:")
-        print("  Customer: demo@bookbazaar.com / demo123")
+        print("  Buyer:    demo@bookbazaar.com / demo123")
+        print("  Seller:   seller@bookbazaar.com / seller123")
         print("  Admin:    admin@bookbazaar.com / admin123")
         print("\nRun the application with: python run.py")
 

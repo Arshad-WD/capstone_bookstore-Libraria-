@@ -7,6 +7,11 @@
     <div class="page-header">
         <h1>My Order History</h1>
         <p class="page-subtitle">Track and manage your book orders</p>
+        {% if session.get('user_role') == 'buyer' %}
+            <div class="seller-cta">
+                <p>Want to sell your own books? <a href="#">Apply to be a seller</a> (Contact Admin)</p>
+            </div>
+        {% endif %}
     </div>
 
     {% if orders %}
@@ -30,6 +35,9 @@
                             <td class="book-title-cell">
                                 <span class="dashboard-book-title">{{ order.book.title }}</span>
                                 <span class="dashboard-book-author">by {{ order.book.author }}</span>
+                                {% if order.book.seller %}
+                                    <span class="dashboard-book-seller"><small>Sold by: {{ order.book.seller.username }}</small></span>
+                                {% endif %}
                             </td>
                             <td>{{ order.quantity }}</td>
                             <td><strong>₹{{ "%.2f"|format(order.total_price) }}</strong></td>

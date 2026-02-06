@@ -23,7 +23,7 @@
                     <th>Order ID</th>
                     <th>Customer</th>
                     <th>Book</th>
-                    <th>Author</th>
+                    <th>Seller</th>
                     <th>Quantity</th>
                     <th>Total</th>
                     <th>Status</th>
@@ -36,7 +36,7 @@
                         <td><span class="order-id">#{{ order.id }}</span></td>
                         <td>{{ order.user.username }}</td>
                         <td><strong>{{ order.book.title }}</strong></td>
-                        <td>{{ order.book.author }}</td>
+                        <td>{{ order.book.seller.username if order.book.seller else 'System' }}</td>
                         <td>{{ order.quantity }}</td>
                         <td><strong>₹{{ "%.2f"|format(order.total_price) }}</strong></td>
                         <td><span class="status-badge status-{{ order.status.lower() }}">{{ order.status }}</span></td>

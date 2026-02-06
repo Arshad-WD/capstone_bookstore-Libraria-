@@ -1,0 +1,5 @@
+buyer_username,book_title,quantity,total_price,status,order_date
+alice_buyer,The Alchemist,1,450.00,Delivered,2024-01-15 10:30:00
+alice_buyer,Atomic Habits,1,600.00,Shipped,2024-02-01 14:20:00
+bob_buyer,The Great Gatsby,2,700.00,Placed,2024-02-05 16:45:00
+alice_buyer,1984,1,400.00,Processing,2024-02-06 09:15:00

@@ -16,6 +16,22 @@
         <a href="{{ url_for('admin.orders') }}" class="admin-nav-btn">All Orders</a>
     </div>
 
+    <div class="filter-bar" style="margin-bottom: 1.5rem; display: flex; gap: 0.75rem;">
+        <a href="{{ url_for('admin.users') }}" class="admin-nav-btn {{ 'active' if current_role == 'all' }}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">Show All</a>
+        <a href="{{ url_for('admin.users', role='seller') }}" class="admin-nav-btn {{ 'active' if current_role == 'seller' }}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">View Sellers Only</a>
+        <a href="{{ url_for('admin.users', role='buyer') }}" class="admin-nav-btn {{ 'active' if current_role == 'buyer' }}" style="font-size: 0.85rem; padding: 0.5rem 1rem;">View Buyers Only</a>
+    </div>
+
+    <div class="bulk-actions-bar" style="margin-bottom: 1.5rem; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px dashed #cbd5e1; display: flex; gap: 1rem; align-items: center;">
+        <span style="font-weight: 700; color: #64748b; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">⚡ Bulk Actions:</span>
+        <form action="{{ url_for('admin.bulk_promote_sellers') }}" method="POST" style="display: inline;">
+            <button type="submit" class="admin-action-btn promote-btn" style="padding: 0.6rem 1.2rem;" onclick="return confirm('Promote ALL buyers to Validated Sellers?')">Everyone to Seller 🚀</button>
+        </form>
+        <form action="{{ url_for('admin.bulk_reset_buyers') }}" method="POST" style="display: inline;">
+            <button type="submit" class="admin-action-btn revoke-btn" style="padding: 0.6rem 1.2rem;" onclick="return confirm('Reset ALL users (except you) to Buyers?')">Reset All to Buyer ↩️</button>
+        </form>
+    </div>
+
     <div class="admin-section full-width">
         <table class="admin-table">
             <thead>
@@ -38,8 +54,15 @@
                         <td>
                             {% if user.role == 'admin' %}
                                 <span class="role-badge role-admin">Admin</span>
+                            {% elif user.role == 'seller' %}
+                                <span class="role-badge role-seller">Seller</span>
+                                {% if user.is_validated %}
+                                    <span class="status-icon" title="Validated Seller">✅</span>
+                                {% else %}
+                                    <span class="status-icon" title="Pending Validation">⚠️</span>
+                                {% endif %}
                             {% else %}
-                                <span class="role-badge role-customer">Customer</span>
+                                <span class="role-badge role-buyer">Buyer</span>
                             {% endif %}
                         </td>
                         <td>{{ user.orders|length }} orders</td>
@@ -48,9 +71,24 @@
                             <div class="user-actions">
                                 {% if user.role == 'admin' %}
                                     <form action="{{ url_for('admin.revoke_admin', user_id=user.id) }}" method="POST" style="display: inline;">
-                                        <button type="submit" class="admin-action-btn revoke-btn" onclick="return confirm('Are you sure you want to revoke admin status from this user?')">Revoke Admin</button>
+                                        <button type="submit" class="admin-action-btn revoke-btn" onclick="return confirm('Are you sure you want to revoke admin status?')">Revoke to Buyer</button>
+                                    </form>
+                                {% elif user.role == 'seller' %}
+                                    <form action="{{ url_for('admin.revoke_admin', user_id=user.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="admin-action-btn revoke-btn">Revoke to Buyer</button>
+                                    </form>
+                                    <form action="{{ url_for('admin.promote_user', user_id=user.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="admin-action-btn promote-btn">Promote to Admin</button>
+                                    </form>
+                                    <form action="{{ url_for('admin.validate_user', user_id=user.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="admin-action-btn" style="background-color: {{ '#d97706' if user.is_validated else '#10b981' }}; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">
+                                            {{ 'Invalidate' if user.is_validated else 'Approve Seller' }}
+                                        </button>
                                     </form>
                                 {% else %}
+                                    <form action="{{ url_for('admin.promote_seller', user_id=user.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="admin-action-btn seller-btn">Promote to Seller</button>
+                                    </form>
                                     <form action="{{ url_for('admin.promote_user', user_id=user.id) }}" method="POST" style="display: inline;">
                                         <button type="submit" class="admin-action-btn promote-btn">Promote to Admin</button>
                                     </form>
