@@ -78,6 +78,7 @@ def seed_data(data_dir):
 
                     item = {
                         'id': book_id,
+                        'type': 'book',
                         'title': row.get('title', 'Unknown'),
                         'author': row.get('author', 'Unknown'),
                         'description': row.get('description', ''),

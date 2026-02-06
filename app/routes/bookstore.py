@@ -16,12 +16,13 @@ def books():
     """Display books with optional search filtering and pagination."""
     query = request.args.get('q', '')
     page = request.args.get('page', 1, type=int)
+    token = request.args.get('token')
     per_page = 8  # Show 8 books per page
     
     if query:
         pagination = book_repo.search_paginated(query, page, per_page)
     else:
-        pagination = book_repo.get_all_paginated(page, per_page)
+        pagination = book_repo.get_all_paginated(page, per_page, token=token)
     
     # Get cart count for display
     cart = session.get('cart', {})

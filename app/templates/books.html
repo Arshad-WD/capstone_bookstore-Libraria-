@@ -59,34 +59,14 @@
             {% endfor %}
         </div>
 
-        <!-- Pagination Controls -->
-        {% if pagination.pages > 1 %}
+        <!-- Token-based Pagination Controls -->
+        {% if pagination.has_next %}
         <div class="pagination">
-            {% if pagination.has_prev %}
-                <a href="{{ url_for('bookstore.books', page=pagination.prev_num, q=query) }}" class="page-link prev-link">← Previous</a>
-            {% else %}
-                <span class="page-link disabled prev-link">← Previous</span>
-            {% endif %}
-
+            <span class="page-link disabled">← Previous</span>
             <div class="page-numbers">
-                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-                    {% if page_num %}
-                        {% if pagination.page == page_num %}
-                            <span class="page-number active">{{ page_num }}</span>
-                        {% else %}
-                            <a href="{{ url_for('bookstore.books', page=page_num, q=query) }}" class="page-number">{{ page_num }}</a>
-                        {% endif %}
-                    {% else %}
-                        <span class="page-ellipsis">...</span>
-                    {% endif %}
-                {% endfor %}
+                <span class="page-number active">Page {{ pagination.page }}</span>
             </div>
-
-            {% if pagination.has_next %}
-                <a href="{{ url_for('bookstore.books', page=pagination.next_num, q=query) }}" class="page-link next-link">Next →</a>
-            {% else %}
-                <span class="page-link disabled next-link">Next →</span>
-            {% endif %}
+            <a href="{{ url_for('bookstore.books', page=pagination.page + 1, token=pagination.next_token, q=query) }}" class="page-link next-link">Next →</a>
         </div>
         {% endif %}
     {% else %}

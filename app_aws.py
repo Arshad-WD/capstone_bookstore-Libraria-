@@ -86,27 +86,32 @@ class DynamoBookRepository:
         self.table_name = DYNAMODB_BOOKS_TABLE
         self.table = self.aws.dynamodb.Table(self.table_name)
         
-    def get_all(self):
-        """Scan table for all books."""
+    def get_paginated(self, limit=8, last_key=None):
+        """Query Books table using TypeIndex for efficient pagination."""
         try:
-            response = self.table.scan()
-            return response.get('Items', [])
-        except ClientError as e:
-            print(f"Error scanning DynamoDB: {e.response['Error']['Message']}")
-            return []
+            query_params = {
+                'IndexName': 'TypeIndex',
+                'KeyConditionExpression': boto3.dynamodb.conditions.Key('type').eq('book'),
+                'Limit': limit
+            }
+            if last_key:
+                query_params['ExclusiveStartKey'] = last_key
             
-    def get_by_id(self, book_id):
-        """Get book by Partition Key."""
-        try:
-            response = self.table.get_item(Key={'id': str(book_id)})
-            return response.get('Item')
+            response = self.table.query(**query_params)
+            return {
+                'Items': response.get('Items', []),
+                'LastEvaluatedKey': response.get('LastEvaluatedKey')
+            }
         except ClientError as e:
-            print(f"Error fetching from DynamoDB: {e.response['Error']['Message']}")
-            return None
-            
+            print(f"Error querying DynamoDB: {e.response['Error']['Message']}")
+            return {'Items': [], 'LastEvaluatedKey': None}
+
     def add(self, book_data):
         """Put item into DynamoDB."""
         try:
+            # Add type for GSI grouping
+            book_data['type'] = 'book'
+            
             # Convert float to Decimal for DynamoDB
             if 'price' in book_data:
                 book_data['price'] = Decimal(str(book_data['price']))
@@ -186,15 +191,29 @@ def setup_aws():
     
     # 1. Create Books Table
     try:
-        print("Creating Books table...")
+        print("Creating Books table with TypeIndex GSI...")
         table = aws_app.dynamodb.create_table(
             TableName='BookBazaarBooks',
             KeySchema=[{'AttributeName': 'id', 'KeyType': 'HASH'}],
-            AttributeDefinitions=[{'AttributeName': 'id', 'AttributeType': 'S'}],
+            AttributeDefinitions=[
+                {'AttributeName': 'id', 'AttributeType': 'S'},
+                {'AttributeName': 'type', 'AttributeType': 'S'}
+            ],
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': 'TypeIndex',
+                    'KeySchema': [
+                        {'AttributeName': 'type', 'KeyType': 'HASH'},
+                        {'AttributeName': 'id', 'KeyType': 'RANGE'}
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                    'ProvisionedThroughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+                }
+            ],
             ProvisionedThroughput={'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
         )
         table.wait_until_exists()
-        print("✓ Books table created.")
+        print("✓ Books table created with indexing.")
     except Exception as e:
         print(f"Books table: {e}")
 

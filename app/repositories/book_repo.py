@@ -1,14 +1,32 @@
+import json
+import base64
 from app.extensions import db
 from app.models.book import Book
 from app_aws import DynamoBookRepository
 
 class BookRepository:
-    def get_all_paginated(self, page, per_page):
-        """Get books from DynamoDB."""
+    def get_all_paginated(self, page, per_page, token=None):
+        """Get books from DynamoDB using token-based pagination."""
         try:
             dynamo = DynamoBookRepository()
-            items = dynamo.get_all()
             
+            # Decode token if present
+            last_key = None
+            if token:
+                try:
+                    last_key = json.loads(base64.b64decode(token).decode('utf-8'))
+                except:
+                    pass
+
+            response = dynamo.get_paginated(limit=per_page, last_key=last_key)
+            items = response['Items']
+            next_key = response['LastEvaluatedKey']
+            
+            # Encode next token
+            next_token = None
+            if next_key:
+                next_token = base64.b64encode(json.dumps(next_key).encode('utf-8')).decode('utf-8')
+
             books = []
             for item in items:
                 book = Book(
@@ -22,29 +40,24 @@ class BookRepository:
                 book.id = item.get('id')
                 books.append(book)
             
-            # Simple manual pagination for the list
-            start = (page - 1) * per_page
-            end = start + per_page
-            
             # Mocking the pagination object structure expected by templates
             class MockPagination:
-                def __init__(self, items, page, per_page, total):
+                def __init__(self, items, page, per_page, next_token):
                     self.items = items
                     self.page = page
                     self.per_page = per_page
-                    self.total = total
-                    self.pages = (total // per_page) + (1 if total % per_page > 0 else 0)
-                    self.has_prev = page > 1
-                    self.has_next = page < self.pages
-                    self.prev_num = page - 1
-                    self.next_num = page + 1
-                def iter_pages(self):
-                    return range(1, self.pages + 1)
+                    self.next_token = next_token
+                    self.has_next = next_token is not None
+                    # We don't have total count anymore for infinite datasets
+                    self.total = 99999 
+                    self.pages = 9999 
+                def iter_pages(self, **kwargs):
+                    return [] # Simplify for token-based
 
-            return MockPagination(books[start:end], page, per_page, len(books))
+            return MockPagination(books, page, per_page, next_token)
         except Exception as e:
             print(f"DynamoDB Read Error: {e}")
-            return Book.query.order_by(Book.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+            return Book.query.order_by(Book.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
     
     def search_paginated(self, query, page, per_page):
         """Search books (Fallback to get_all for simplicity on Dynamo)."""
