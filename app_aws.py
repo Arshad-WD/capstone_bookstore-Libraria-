@@ -4,6 +4,7 @@ import sys
 import argparse
 from botocore.exceptions import ClientError
 from decimal import Decimal
+from werkzeug.security import generate_password_hash
 # Hardcoded Configuration (Edit these directly)
 AWS_REGION = "us-east-1"
 SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
@@ -337,10 +338,11 @@ def seed_db():
                     'email': row['email'],
                     'role': row['role'],
                     'is_validated': row['is_validated'].lower() == 'true',
-                    'password_hash': 'pbkdf2:sha256:260000$placeholder' # Default placeholder
+                    'password_hash': generate_password_hash(row['password'])
                 }
                 user_repo.add(user_data)
                 user_map[row['username']] = user_id
+                print(f"  Added user: {row['username']}")
         print("✓ Users seeded.")
     except Exception as e:
         print(f"Error seeding users: {e}")
