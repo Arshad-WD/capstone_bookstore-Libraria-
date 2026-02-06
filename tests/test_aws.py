@@ -3,7 +3,7 @@ import boto3
 import os
 from moto import mock_aws
 from decimal import Decimal
-from app_aws import SNSNotifier, DynamoBookRepository, DynamoUserRepository, DynamoOrderRepository, S3Uploader, setup_aws
+from app_aws import SNSNotifier, DynamoBookRepository, DynamoUserRepository, DynamoOrderRepository, setup_aws
 
 @pytest.fixture
 def aws_credentials():
@@ -135,31 +135,6 @@ def test_dynamo_order_repo(dynamodb_mock):
     assert len(results) == 1
     assert results[0]['id'] == 'o1'
 
-@mock_aws
-def test_s3_uploader(aws_credentials):
-    """Test S3 file uploading."""
-    s3 = boto3.client("s3", region_name="us-east-1")
-    s3.create_bucket(Bucket='bookbazaar-assets')
-    
-    # Create a dummy file
-    test_file = "test_image.jpg"
-    with open(test_file, "w") as f:
-        f.write("dummy image data")
-        
-    try:
-        uploader = S3Uploader()
-        url = uploader.upload_file(test_file)
-        
-        assert url is not None
-        assert "bookbazaar-assets.s3.us-east-1.amazonaws.com/test_image.jpg" in url
-        
-        # Verify file exists in s3
-        response = s3.list_objects_v2(Bucket='bookbazaar-assets')
-        assert response['KeyCount'] == 1
-        assert response['Contents'][0]['Key'] == 'test_image.jpg'
-    finally:
-        if os.path.exists(test_file):
-            os.remove(test_file)
 
 def test_sns_notifier_send(sns_mock, mocker):
     """Test sending SNS notifications with publish verification."""

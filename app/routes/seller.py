@@ -5,7 +5,7 @@ from app.models.book import Book
 from app.models.order import Order
 from app.routes.auth import login_required
 from functools import wraps
-from app_aws import aws_app, S3Uploader
+from app_aws import aws_app
 
 seller_bp = Blueprint("seller", __name__, url_prefix="/seller")
 
@@ -65,15 +65,8 @@ def add_book():
             flash("IAM Policy restriction: Access denied.", "error")
             return redirect(url_for("seller.dashboard"))
             
-        # S3 Simulation: If image_url starts with 'file://' or is a path, upload it
-        if image_url and (image_url.startswith('/') or ':\\' in image_url):
-            try:
-                uploader = S3Uploader()
-                s3_url = uploader.upload_file(image_url)
-                if s3_url:
-                    image_url = s3_url
-            except Exception as s3e:
-                print(f"S3 Upload failed (mocked): {s3e}")
+        # S3 Simulation: REMOVED for Zero-S3 Architecture
+        # The app now uses local static paths or direct URLs
 
         new_book = Book(
             title=title,
