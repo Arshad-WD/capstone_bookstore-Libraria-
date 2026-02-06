@@ -6,11 +6,8 @@ from botocore.exceptions import ClientError
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 # Hardcoded Configuration (Edit these directly)
-# Hardcoded Configuration (Edit these directly)
 AWS_REGION = "us-east-1"
 SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
-# Using Account ID suffix to ensure global uniqueness and avoid permission ambiguity
-S3_BUCKET_NAME = "bookbazaar-assets-861276080904"
 
 # DynamoDB Table Names
 DYNAMODB_BOOKS_TABLE = "BookBazaarBooks"
@@ -24,7 +21,7 @@ class AWSApp:
         self.region = AWS_REGION
         self._dynamodb = None
         self._sns = None
-        self._s3 = None
+        self._sns = None
         self._iam = None
 
     def check_iam_permission(self, user_role, resource):
@@ -182,35 +179,6 @@ class DynamoOrderRepository:
             print(f"Error fetching seller orders: {e.response['Error']['Message']}")
             return []
 
-class S3Uploader:
-    """AWS S3 implementation for file uploads."""
-    
-    def __init__(self, aws_instance=None):
-        self.aws = aws_instance or aws_app
-        self._s3_client = None
-        self.bucket_name = S3_BUCKET_NAME
-        
-    @property
-    def client(self):
-        if self._s3_client is None:
-            self._s3_client = boto3.client('s3', region_name=self.aws.region)
-        return self._s3_client
-        
-    def upload_file(self, file_path, object_name=None):
-        """Upload a file to an S3 bucket with resilience."""
-        if object_name is None:
-            object_name = os.path.basename(file_path)
-            
-        try:
-            self.client.upload_file(file_path, self.bucket_name, object_name)
-            url = f"https://{self.bucket_name}.s3.{self.aws.region}.amazonaws.com/{object_name}"
-            print(f"[AWS S3] File uploaded to {url}")
-            return url
-        except Exception as e:
-            # Fallback for restricted environments
-            print(f"[AWS S3 FALLBACK] Upload skipped (Permission/Bucket missing): {e}")
-            # Return a local relative path as fallback
-            return f"/static/images/{object_name}"
 
 def setup_aws():
     """Setup AWS resources (DynamoDB tables and SNS topics)."""
@@ -267,20 +235,6 @@ def setup_aws():
     except Exception as e:
         print(f"Users table: {e}")
 
-    # 5. Create S3 Bucket (Resilient setup)
-    try:
-        print("Creating S3 Bucket...")
-        s3 = boto3.client('s3', region_name=aws_app.region)
-        if aws_app.region == 'us-east-1':
-            s3.create_bucket(Bucket=S3_BUCKET_NAME)
-        else:
-            s3.create_bucket(
-                Bucket=S3_BUCKET_NAME,
-                CreateBucketConfiguration={'LocationConstraint': aws_app.region}
-            )
-        print("✓ S3 Bucket created.")
-    except Exception as e:
-        print(f"[SKIPPED] S3 bucket creation failed (Expected in restricted roles): {e}")
 
     print("\nAWS environment setup complete.")
 

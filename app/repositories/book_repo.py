@@ -86,7 +86,7 @@ class BookRepository:
                 'price': book.price,
                 'stock': book.stock,
                 'seller_id': str(book.seller_id) if book.seller_id else "system",
-                'image_url': book.image_url or ""
+                'image_url': book.image_url or f"/static/images/placeholder.jpg"
             })
         except Exception as e:
             print(f"DynamoDB Sync Error: {e}")
