@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 
 # --- Configuration (Sync with app_aws.py) ---
 AWS_REGION = "us-east-1"
-S3_BUCKET = "bookbazaar-assets"
+S3_BUCKET = "bookbazaar-assets-861276080904"
 TABLE_USERS = "BookBazaarUsers"
 TABLE_BOOKS = "BookBazaarBooks"
 TABLE_ORDERS = "BookBazaarOrders"
@@ -41,6 +41,14 @@ def upload_to_s3(local_path, s3_key):
         s3_client.upload_file(local_path, S3_BUCKET, s3_key)
         print(f"  ✓ Uploaded.")
         return True
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'AccessDenied':
+            print(f"  [PERMANENT FIX REQUIRED] Your AWS role cannot create buckets automatically.")
+            print(f"  Please manually create bucket '{S3_BUCKET}' in the S3 Console.")
+            print(f"  Then run this script again - it will skip creation and just upload.")
+        else:
+            print(f"  [ERROR] S3 Error: {e}")
+        return False
     except Exception as e:
         print(f"  [ERROR] Upload failed: {e}")
         return False

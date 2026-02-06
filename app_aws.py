@@ -6,9 +6,11 @@ from botocore.exceptions import ClientError
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 # Hardcoded Configuration (Edit these directly)
+# Hardcoded Configuration (Edit these directly)
 AWS_REGION = "us-east-1"
 SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
-S3_BUCKET_NAME = "bookbazaar-assets"
+# Using Account ID suffix to ensure global uniqueness and avoid permission ambiguity
+S3_BUCKET_NAME = "bookbazaar-assets-861276080904"
 
 # DynamoDB Table Names
 DYNAMODB_BOOKS_TABLE = "BookBazaarBooks"
