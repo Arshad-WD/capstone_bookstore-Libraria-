@@ -4,6 +4,7 @@ import io
 import os
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
+from botocore.exceptions import ClientError
 
 # --- Configuration (Sync with app_aws.py) ---
 AWS_REGION = "us-east-1"
@@ -17,9 +18,26 @@ s3_client = boto3.client('s3', region_name=AWS_REGION)
 dynamodb = boto3.resource('dynamodb', region_name=AWS_REGION)
 
 def upload_to_s3(local_path, s3_key):
-    """Upload local file to S3."""
+    """Upload local file to S3, creating bucket if necessary."""
     print(f"Uploading {local_path} to s3://{S3_BUCKET}/{s3_key}...")
     try:
+        # Try to create bucket if it doesn't exist
+        try:
+            s3_client.head_bucket(Bucket=S3_BUCKET)
+        except ClientError as e:
+            if e.response['Error']['Code'] == '404' or e.response['Error']['Code'] == 'NoSuchBucket':
+                print(f"  Bucket {S3_BUCKET} not found. Creating...")
+                if AWS_REGION == 'us-east-1':
+                    s3_client.create_bucket(Bucket=S3_BUCKET)
+                else:
+                    s3_client.create_bucket(
+                        Bucket=S3_BUCKET,
+                        CreateBucketConfiguration={'LocationConstraint': AWS_REGION}
+                    )
+                print(f"  ✓ Bucket created.")
+            else:
+                raise e
+
         s3_client.upload_file(local_path, S3_BUCKET, s3_key)
         print(f"  ✓ Uploaded.")
         return True
@@ -118,14 +136,25 @@ if __name__ == "__main__":
     
     # 1. Upload
     files = ['users.csv', 'books.csv', 'orders.csv']
+    all_uploaded = True
     for f in files:
-        upload_to_s3(os.path.join(data_dir, f), f"imports/{f}")
+        if not upload_to_s3(os.path.join(data_dir, f), f"imports/{f}"):
+            all_uploaded = False
+    
+    if not all_uploaded:
+        print("\n[STOP] Pipeline halted: S3 Uploads failed.")
+        exit(1)
 
     # 2. Sync
     try:
         users = process_users("imports/users.csv")
+        if not users: raise Exception("User sync failed or S3 file empty")
+        
         books = process_books("imports/books.csv", users)
+        if not books: raise Exception("Book sync failed or S3 file empty")
+
         process_orders("imports/orders.csv", users, books)
         print("\nPIPELINE SUCCESS: Data moved through S3 to DynamoDB!")
     except Exception as e:
         print(f"\nPIPELINE ERROR: {e}")
+        exit(1)
