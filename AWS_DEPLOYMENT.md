@@ -1,6 +1,6 @@
 # 🚀 AWS Deployment Guide (Production)
 
-Follow these steps to transition the BookBazaar platform from local development to AWS Cloud.
+Steps to transition the BookBazaar platform from local development to AWS Cloud.
 
 ## 1. Prerequisites
 - **AWS Account**: Active account with administrative access.
