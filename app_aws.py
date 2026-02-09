@@ -7,7 +7,9 @@ from decimal import Decimal
 from werkzeug.security import generate_password_hash
 # Hardcoded Configuration (Edit these directly)
 AWS_REGION = "us-east-1"
-SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
+# SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
+SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:148761657981:bookstore_notification"
+
 
 # DynamoDB Table Names
 DYNAMODB_BOOKS_TABLE = "BookBazaarBooks"
