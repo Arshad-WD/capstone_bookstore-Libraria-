@@ -2320,3 +2320,24 @@ body {
     color: #4f46e5;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+
+/* Validate/Invalidate Button Styles */
+.validate-btn {
+    background-color: #10b981 !important;
+}
+
+.validate-btn:hover {
+    background-color: #059669 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.invalidate-btn {
+    background-color: #d97706 !important;
+}
+
+.invalidate-btn:hover {
+    background-color: #b45309 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
+}

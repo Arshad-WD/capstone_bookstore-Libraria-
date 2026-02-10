@@ -22,7 +22,7 @@ def get_decimal(val):
 
 def seed_data(data_dir):
     print("========================================")
-    print("   🚀 HIGH-PERFORMANCE CSV SEEDER 🚀   ")
+    print("    HIGH-PERFORMANCE CSV SEEDER   ")
     print("========================================")
 
     # 1. Sync Users
@@ -122,7 +122,7 @@ def seed_data(data_dir):
         print(f"  [SKIPPED] orders.csv not found.")
 
     print("\n========================================")
-    print("   ✅ TOTAL DATA RELOADED SUCCESSFULLY   ")
+    print("    TOTAL DATA RELOADED SUCCESSFULLY   ")
     print("========================================")
 
 if __name__ == "__main__":

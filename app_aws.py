@@ -2,14 +2,17 @@ import boto3
 import os
 import sys
 import argparse
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 from botocore.exceptions import ClientError
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 # Hardcoded Configuration (Edit these directly)
 AWS_REGION = "us-east-1"
-SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:339713020789:BookBazaarNotifications"
-# SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:148761657981:bookstore_notification"
-
+SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:861276080904:BookBazaarNotifications"
 
 # DynamoDB Table Names
 DYNAMODB_BOOKS_TABLE = "BookBazaarBooks"
@@ -90,23 +93,19 @@ class DynamoBookRepository:
         
     def get_paginated(self, limit=8, last_key=None):
         """Query Books table using TypeIndex for efficient pagination."""
-        try:
-            query_params = {
-                'IndexName': 'TypeIndex',
-                'KeyConditionExpression': boto3.dynamodb.conditions.Key('type').eq('book'),
-                'Limit': limit
-            }
-            if last_key:
-                query_params['ExclusiveStartKey'] = last_key
-            
-            response = self.table.query(**query_params)
-            return {
-                'Items': response.get('Items', []),
-                'LastEvaluatedKey': response.get('LastEvaluatedKey')
-            }
-        except ClientError as e:
-            print(f"Error querying DynamoDB: {e.response['Error']['Message']}")
-            return {'Items': [], 'LastEvaluatedKey': None}
+        query_params = {
+            'IndexName': 'TypeIndex',
+            'KeyConditionExpression': boto3.dynamodb.conditions.Key('type').eq('book'),
+            'Limit': limit
+        }
+        if last_key:
+            query_params['ExclusiveStartKey'] = last_key
+        
+        response = self.table.query(**query_params)
+        return {
+            'Items': response.get('Items', []),
+            'LastEvaluatedKey': response.get('LastEvaluatedKey')
+        }
 
     def add(self, book_data):
         """Put item into DynamoDB."""

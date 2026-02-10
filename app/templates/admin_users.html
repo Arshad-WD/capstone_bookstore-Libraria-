@@ -81,7 +81,7 @@
                                         <button type="submit" class="admin-action-btn promote-btn">Promote to Admin</button>
                                     </form>
                                     <form action="{{ url_for('admin.validate_user', user_id=user.id) }}" method="POST" style="display: inline;">
-                                        <button type="submit" class="admin-action-btn" style="background-color: {{ '#d97706' if user.is_validated else '#10b981' }}; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">
+                                        <button type="submit" class="admin-action-btn {{ 'revoke-btn' if user.is_validated else 'promote-btn' }}" style="border-radius: 4px; padding: 0.5rem 1rem; font-size: 0.875rem;">
                                             {{ 'Invalidate' if user.is_validated else 'Approve Seller' }}
                                         </button>
                                     </form>

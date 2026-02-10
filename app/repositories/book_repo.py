@@ -20,6 +20,12 @@ class BookRepository:
 
             response = dynamo.get_paginated(limit=per_page, last_key=last_key)
             items = response['Items']
+            
+            # If no items found in DynamoDB on first page, check if we should fallback to SQL
+            if not items and not token:
+                print("No books found in DynamoDB first page, falling back to SQL...")
+                return Book.query.order_by(Book.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
             next_key = response['LastEvaluatedKey']
             
             # Encode next token
